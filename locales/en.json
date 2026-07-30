@@ -1,0 +1,42 @@
+{
+  "welcome": "\ud83c\udf1f Welcome to *Hela Bot*, {first_name}! Type /help to see what I can do.",
+  "help": "\ud83e\uddad *Hela Bot Help*\n\nUse /help <category> to browse commands: economy, admin, owner, support.",
+  "maintenance_mode": "\ud83d\udea7 Hela Bot is currently under maintenance. Please try again shortly.",
+  "permission_denied": "\u26d4 You need *{required}* access for this (you currently have *{current}*).",
+  "error_generic": "\u26a0\ufe0f Something went wrong handling that. The issue has been logged.",
+
+  "economy.balance": "\ud83d\udcb0 *{name}*\nWallet: {balance} coins\nBank: {bank} coins",
+  "economy.daily_claimed": "\ud83c\udf81 You claimed your daily reward: *+{amount} coins*! Streak: {streak} \ud83d\udd25",
+  "economy.daily_cooldown": "\u23f3 You already claimed your daily reward. Come back in {remaining}.",
+  "economy.work_success": "\ud83d\udee0\ufe0f You worked hard and earned *{amount} coins*!",
+  "economy.work_cooldown": "\ud83d\ude34 You're tired from your last shift. Try again in {remaining}.",
+  "economy.pay_success": "\u2705 Sent *{amount} coins* to {target}.",
+  "economy.pay_insufficient_funds": "\u274c You don't have enough coins in your wallet for that.",
+  "economy.leaderboard_title": "\ud83c\udfc6 *Top {count} Richest Users*",
+
+  "moderation.warn_issued": "\u26a0\ufe0f {target} has been warned by {actor}. Reason: {reason}\nTotal warnings: {count}",
+  "moderation.mute_success": "\ud83d\udd07 {target} has been muted by {actor}.",
+  "moderation.kick_success": "\ud83d\udc62 {target} has been kicked by {actor}.",
+  "moderation.ban_success": "\ud83d\udd28 {target} has been banned by {actor}. Reason: {reason}",
+  "moderation.group_only": "This command can only be used inside a group.",
+  "moderation.reply_required": "Reply to the user's message (or give their @username) to use this command.",
+
+  "admin.coins_added": "\u2705 Added {amount} coins to {target}. New balance: {balance}.",
+  "admin.coins_removed": "\u2705 Removed {amount} coins from {target}. New balance: {balance}.",
+  "admin.user_reset": "\u267b\ufe0f Economy data for {target} has been reset.",
+
+  "owner.broadcast_started": "\ud83d\udce2 Broadcasting to {total} chats\u2026",
+  "owner.broadcast_done": "\u2705 Broadcast complete: {success} delivered, {failed} failed (out of {total}).",
+  "owner.maintenance_on": "\ud83d\udea7 Maintenance mode *enabled*. Only the owner can use the bot now.",
+  "owner.maintenance_off": "\u2705 Maintenance mode *disabled*. Hela Bot is back online for everyone.",
+  "owner.stats": "\ud83d\udcca *Hela Bot Stats*\nUsers: {users}\nGroups: {groups}\nOpen tickets: {tickets}\nUptime: {uptime}",
+
+  "support.ticket_created": "\ud83c\udfab Ticket #{id} opened: \"{subject}\". Our support team will reply here soon.",
+  "support.ticket_closed": "\ud83d\udd12 Ticket #{id} has been closed.",
+  "support.ticket_reply": "\ud83d\udcac New reply on ticket #{id}:\n{message}",
+  "support.no_open_ticket": "You don't have an open ticket. Use /ticket <subject> to open one.",
+  "support.ticket_list_empty": "\u2728 No open tickets right now.",
+
+  "ui.updated": "\u2705 UI key `{key}` updated. Changes are live immediately.",
+  "ui.not_found": "No UI key `{key}` found (and no default exists for it either)."
+}
