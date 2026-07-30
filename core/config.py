@@ -34,6 +34,18 @@ class Settings(BaseSettings):
     # --- Redis ---
     redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, value: str) -> str:
+        if value is None:
+            return value
+        normalized = str(value).strip()
+        if normalized.startswith("postgres://"):
+            return "postgresql+asyncpg://" + normalized[len("postgres://"):]
+        if normalized.startswith("postgresql://"):
+            return "postgresql+asyncpg://" + normalized[len("postgresql://"):]
+        return normalized
+
     # --- Runtime flags ---
     maintenance_mode: bool = Field(default=False, alias="MAINTENANCE_MODE")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
