@@ -1,23 +1,36 @@
 from __future__ import annotations
 
+from sqlalchemy import select
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 from core.logging import get_logger
-from database.models import GroupChat, User
+from database.models import GroupChat
 from database.session import get_session
 from modules.economy.service import get_or_create_user
 from modules.ui.renderer import render
-from sqlalchemy import select
 
 logger = get_logger(__name__)
 
 HELP_CATEGORIES = {
-    "economy": ["/balance", "/daily", "/work", "/pay <amount> (reply)", "/leaderboard"],
-    "admin": ["/warn (reply)", "/mute [minutes] (reply)", "/kick (reply)", "/ban [reason] (reply)",
-              "/addcoins <amount> (reply)", "/removecoins <amount> (reply)", "/resetuser (reply)"],
-    "owner": ["/broadcast <message>", "/maintenance <on|off>", "/stats", "/editui <key> <text>"],
+    "economy": ["/balance", "/daily", "/work", "/pay <amount> (reply)", "/deposit <amount>", "/withdraw <amount>",
+                "/profile", "/rank", "/leaderboard"],
+    "rpg": ["/adventure", "/hunt", "/fight (reply)", "/inventory"],
+    "shop": ["/shop", "/buy <item> [qty]", "/sell <item> [qty]", "/use <item>"],
+    "pets": ["/adopt <species> <name>", "/pets", "/feed", "/releasepet"],
+    "guild": ["/guildcreate <name>", "/guildjoin <name>", "/guildleave", "/guildinfo [name]", "/guildlist",
+              "/guilddonate <amount>", "/guildkick (reply)"],
+    "gambling": ["/coinflip <bet> <heads|tails>", "/dice <bet>", "/slots <bet>", "/lotterybuy [count]", "/lottery"],
+    "premium": ["/premium"],
+    "admin": ["/warn (reply)", "/unwarn (reply)", "/warnings (reply)", "/mute [minutes] (reply)", "/unmute (reply)",
+              "/kick (reply)", "/ban [reason] (reply)", "/unban <user_id>", "/purge (reply)",
+              "/addcoins <amount> (reply)", "/removecoins <amount> (reply)", "/resetuser (reply)",
+              "/promote <level> (reply)", "/demote (reply)", "/blacklist (reply)", "/unblacklist (reply)",
+              "/groupban", "/groupunban", "/grantpremium <days> (reply)", "/revokepremium (reply)",
+              "/addforcejoin <@channel>", "/removeforcejoin <@channel>", "/forcejoinlist"],
+    "owner": ["/broadcast <message>", "/maintenance <on|off>", "/stats", "/shutdown", "/editui <key> <text>",
+              "/ui <key>", "/reloadui", "/lotterydraw"],
     "support": ["/ticket <subject>", "/tickets (staff)", "/reply <id> <message> (staff)", "/close [id]"],
 }
 

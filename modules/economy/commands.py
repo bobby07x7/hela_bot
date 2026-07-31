@@ -8,6 +8,7 @@ from core.logging import get_logger
 from core.permissions import PermissionLevel, require_permission
 from database.session import get_session
 from modules.economy import service
+from modules.forcejoin.commands import require_joined
 from modules.ui.renderer import render
 
 logger = get_logger(__name__)
@@ -28,6 +29,7 @@ async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 @require_permission(PermissionLevel.USER)
+@require_joined
 async def daily_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     tg_user = update.effective_user
     settings = get_settings()
@@ -93,6 +95,82 @@ async def pay_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.effective_message.reply_html(text)
     else:
         await update.effective_message.reply_text(await render("economy.pay_insufficient_funds"))
+
+
+@require_permission(PermissionLevel.USER)
+async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/deposit <amount> - move coins from wallet to bank (safe from /pay theft mechanics if added later)."""
+    tg_user = update.effective_user
+    if not context.args:
+        await update.effective_message.reply_text("Usage: /deposit <amount>")
+        return
+    try:
+        amount = int(context.args[0])
+    except ValueError:
+        await update.effective_message.reply_text("Amount must be a whole number.")
+        return
+
+    async with get_session() as session:
+        user = await service.get_or_create_user(session, tg_user.id, tg_user.username, tg_user.first_name)
+        ok = service.deposit(user, amount)
+        bank = user.bank
+
+    if ok:
+        await update.effective_message.reply_text(await render("economy.deposit_success", amount=amount, bank=bank))
+    else:
+        await update.effective_message.reply_text(await render("economy.pay_insufficient_funds"))
+
+
+@require_permission(PermissionLevel.USER)
+async def withdraw_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/withdraw <amount> - move coins from bank back to wallet."""
+    tg_user = update.effective_user
+    if not context.args:
+        await update.effective_message.reply_text("Usage: /withdraw <amount>")
+        return
+    try:
+        amount = int(context.args[0])
+    except ValueError:
+        await update.effective_message.reply_text("Amount must be a whole number.")
+        return
+
+    async with get_session() as session:
+        user = await service.get_or_create_user(session, tg_user.id, tg_user.username, tg_user.first_name)
+        ok = service.withdraw(user, amount)
+        balance = user.balance
+
+    if ok:
+        await update.effective_message.reply_text(await render("economy.withdraw_success", amount=amount, balance=balance))
+    else:
+        await update.effective_message.reply_text(await render("economy.insufficient_bank"))
+
+
+@require_permission(PermissionLevel.USER)
+async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    tg_user = update.effective_user
+    async with get_session() as session:
+        user = await service.get_or_create_user(session, tg_user.id, tg_user.username, tg_user.first_name)
+        text = await render(
+            "economy.profile",
+            name=tg_user.first_name or tg_user.username or "there",
+            level=user.level,
+            xp=user.xp,
+            balance=user.balance,
+            bank=user.bank,
+            hp=user.hp,
+            max_hp=user.max_hp,
+            strength=user.strength,
+        )
+    await update.effective_message.reply_text(text, parse_mode="Markdown")
+
+
+@require_permission(PermissionLevel.USER)
+async def rank_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    tg_user = update.effective_user
+    async with get_session() as session:
+        user = await service.get_or_create_user(session, tg_user.id, tg_user.username, tg_user.first_name)
+        rank, total = await service.rank_of(session, user)
+    await update.effective_message.reply_text(await render("economy.rank", rank=rank, total=total))
 
 
 @require_permission(PermissionLevel.USER)

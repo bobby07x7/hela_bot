@@ -49,3 +49,11 @@ async def ui_preview_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     key = context.args[0]
     text = await render(key)
     await update.effective_message.reply_text(text, parse_mode="Markdown")
+
+
+@require_permission(PermissionLevel.BOT_OWNER)
+async def reloadui_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/reloadui - force-clear the UI override cache (rarely needed; writes
+    already invalidate it, but useful if a second process wrote directly)."""
+    reload_ui()
+    await update.effective_message.reply_text("UI cache reloaded.")

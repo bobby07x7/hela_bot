@@ -13,6 +13,7 @@ from sqlalchemy import (
     JSON,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -49,6 +50,7 @@ class User(Base):
     username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     first_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
+    # Economy
     balance: Mapped[int] = mapped_column(Integer, default=0)
     bank: Mapped[int] = mapped_column(Integer, default=0)
     xp: Mapped[int] = mapped_column(Integer, default=0)
@@ -58,11 +60,21 @@ class User(Base):
     last_daily_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_work_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # RPG
+    hp: Mapped[int] = mapped_column(Integer, default=100)
+    max_hp: Mapped[int] = mapped_column(Integer, default=100)
+    strength: Mapped[int] = mapped_column(Integer, default=10)
+    last_adventure_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_hunt_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_fight_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Access / moderation
     permission_level: Mapped[int] = mapped_column(Integer, default=int(PermissionLevel.USER))
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     premium_until: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
     ban_reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    force_join_exempt: Mapped[bool] = mapped_column(Boolean, default=False)
 
     locale: Mapped[str] = mapped_column(String(8), default="en")
 
@@ -70,6 +82,7 @@ class User(Base):
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
     warnings: Mapped[list["Warning"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    inventory: Mapped[list["InventoryItem"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class GroupChat(Base):
@@ -169,3 +182,90 @@ class BroadcastLog(Base):
     success: Mapped[int] = mapped_column(Integer, default=0)
     failed: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+# --- Inventory / shop ---
+
+
+class InventoryItem(Base):
+    __tablename__ = "inventory_items"
+    __table_args__ = (UniqueConstraint("user_id", "item_key", name="uq_inventory_user_item"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    item_key: Mapped[str] = mapped_column(String(64))
+    quantity: Mapped[int] = mapped_column(Integer, default=1)
+
+    user: Mapped["User"] = relationship(back_populates="inventory")
+
+
+# --- Pets ---
+
+
+class Pet(Base):
+    __tablename__ = "pets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    owner_telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    species: Mapped[str] = mapped_column(String(32))
+    level: Mapped[int] = mapped_column(Integer, default=1)
+    xp: Mapped[int] = mapped_column(Integer, default=0)
+    hunger: Mapped[int] = mapped_column(Integer, default=100)  # 0 = starving, 100 = full
+    happiness: Mapped[int] = mapped_column(Integer, default=100)
+    last_fed_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+# --- Guilds ---
+
+
+class Guild(Base):
+    __tablename__ = "guilds"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    owner_telegram_id: Mapped[int] = mapped_column(BigInteger)
+    level: Mapped[int] = mapped_column(Integer, default=1)
+    bank: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    members: Mapped[list["GuildMember"]] = relationship(back_populates="guild", cascade="all, delete-orphan")
+
+
+class GuildMember(Base):
+    __tablename__ = "guild_members"
+    __table_args__ = (UniqueConstraint("member_telegram_id", name="uq_guild_member_one_guild"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    guild_id: Mapped[int] = mapped_column(ForeignKey("guilds.id"))
+    member_telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    role: Mapped[str] = mapped_column(String(16), default="member")  # member | officer | owner
+    contributed: Mapped[int] = mapped_column(Integer, default=0)
+    joined_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    guild: Mapped["Guild"] = relationship(back_populates="members")
+
+
+# --- Gambling / lottery ---
+
+
+class LotteryEntry(Base):
+    __tablename__ = "lottery_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    round_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    tickets: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class LotteryRound(Base):
+    __tablename__ = "lottery_rounds"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    is_open: Mapped[bool] = mapped_column(Boolean, default=True)
+    pot: Mapped[int] = mapped_column(Integer, default=0)
+    winner_telegram_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    drawn_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from sqlalchemy import func, select
 
 from core.config import get_settings
-from database.models import GroupChat, Ticket, TicketStatus, User
+from database.models import GroupChat, Guild, Ticket, TicketStatus, User
 from database.session import get_session
 
 app = FastAPI(title="Hela Bot Dashboard API", version="0.1.0")
@@ -29,11 +29,12 @@ async def stats() -> dict:
     async with get_session() as session:
         users = (await session.execute(select(func.count()).select_from(User))).scalar_one()
         groups = (await session.execute(select(func.count()).select_from(GroupChat))).scalar_one()
+        guilds = (await session.execute(select(func.count()).select_from(Guild))).scalar_one()
         open_tickets = (
             await session.execute(select(func.count()).select_from(Ticket).where(Ticket.status == TicketStatus.OPEN))
         ).scalar_one()
 
-    return {"users": users, "groups": groups, "open_tickets": open_tickets}
+    return {"users": users, "groups": groups, "guilds": guilds, "open_tickets": open_tickets}
 
 
 def run() -> None:

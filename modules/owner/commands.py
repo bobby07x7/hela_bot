@@ -91,3 +91,16 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         "owner.stats", users=users, groups=groups, tickets=open_tickets, uptime=f"{hours}h {minutes}m"
     )
     await update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
+
+@require_permission(PermissionLevel.BOT_OWNER)
+async def shutdown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/shutdown - gracefully stops the bot process. The host platform
+    (Docker/Railway/systemd) is expected to restart it, so use this for a
+    clean reboot rather than as a permanent kill switch."""
+    async with get_session() as session:
+        session.add(AuditLog(actor_id=update.effective_user.id, action="shutdown"))
+
+    await update.effective_message.reply_text(await render("owner.shutdown"))
+    logger.warning("Shutdown requested by owner %s", update.effective_user.id)
+    context.application.create_task(context.application.stop())

@@ -65,7 +65,7 @@ async def resolve_permission_level(update: Update) -> PermissionLevel:
             pass
 
     # DB-stored level (premium / vip / moderator / bot_admin / super_admin
-    # granted by an owner via /promote, or plain USER/GUEST default).
+    # granted via /promote, or plain USER default).
     db_level = PermissionLevel.USER
     async with get_session() as session:
         from database.models import User

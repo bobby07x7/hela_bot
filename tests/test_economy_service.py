@@ -32,7 +32,6 @@ async def test_daily_claim_then_cooldown(session):
 async def test_daily_streak_increments_within_window(session):
     user = await service.get_or_create_user(session, telegram_id=3, username="carl")
     await service.claim_daily(session, user, 50, 50)
-    # Simulate 25 hours passing (inside the 48h streak-preserving window).
     user.last_daily_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=25)
 
     claimed, amount, _ = await service.claim_daily(session, user, 50, 50)
@@ -64,7 +63,7 @@ async def test_transfer_moves_balance_and_blocks_overdraft(session):
 
     blocked = await service.transfer(session, sender, recipient, 1000)
     assert blocked is False
-    assert sender.balance == 60  # unchanged
+    assert sender.balance == 60
 
 
 async def test_top_balances_orders_descending(session):
@@ -75,3 +74,37 @@ async def test_top_balances_orders_descending(session):
 
     top = await service.top_balances(session, limit=10)
     assert [u.telegram_id for u in top[:2]] == [8, 7]
+
+
+async def test_deposit_and_withdraw(session):
+    user = await service.get_or_create_user(session, telegram_id=9, username="ivan")
+    user.balance = 100
+
+    assert service.deposit(user, 40) is True
+    assert user.balance == 60 and user.bank == 40
+    assert service.deposit(user, 1000) is False
+
+    assert service.withdraw(user, 10) is True
+    assert user.bank == 30 and user.balance == 70
+    assert service.withdraw(user, 999) is False
+
+
+async def test_apply_xp_levels_up(session):
+    user = await service.get_or_create_user(session, telegram_id=10, username="jill")
+    levels = service.apply_xp(user, 250)
+    assert levels == [2]
+    assert user.level == 2
+    assert user.xp == 150
+
+
+async def test_rank_of(session):
+    a = await service.get_or_create_user(session, telegram_id=11, username="ken")
+    b = await service.get_or_create_user(session, telegram_id=12, username="liz")
+    a.balance = 1000
+    b.balance = 500
+
+    rank_a, total = await service.rank_of(session, a)
+    rank_b, _ = await service.rank_of(session, b)
+    assert rank_a == 1
+    assert rank_b == 2
+    assert total == 2

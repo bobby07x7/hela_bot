@@ -30,7 +30,6 @@ def setup_logging() -> None:
     )
     root.handlers = [handler]
 
-    # Quiet down noisy third-party loggers.
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("apscheduler").setLevel(logging.WARNING)
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import random
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -46,6 +46,26 @@ def format_timedelta(delta: dt.timedelta) -> str:
     if seconds and not hours:
         parts.append(f"{seconds}s")
     return " ".join(parts)
+
+
+def xp_for_next_level(level: int) -> int:
+    """XP required to advance from `level` to `level + 1`."""
+    return 100 * level
+
+
+def apply_xp(user: User, amount: int) -> list[int]:
+    """Adds XP to a user and applies as many level-ups as the XP allows.
+    Returns the list of new levels reached (empty if none)."""
+    user.xp += amount
+    levels_gained: list[int] = []
+    while user.xp >= xp_for_next_level(user.level):
+        user.xp -= xp_for_next_level(user.level)
+        user.level += 1
+        user.max_hp += 10
+        user.hp = user.max_hp
+        user.strength += 2
+        levels_gained.append(user.level)
+    return levels_gained
 
 
 async def claim_daily(session: AsyncSession, user: User, reward_min: int, reward_max: int) -> tuple[bool, int, dt.timedelta]:
@@ -96,6 +116,31 @@ async def transfer(session: AsyncSession, sender: User, recipient: User, amount:
     return True
 
 
+def deposit(user: User, amount: int) -> bool:
+    if amount <= 0 or user.balance < amount:
+        return False
+    user.balance -= amount
+    user.bank += amount
+    return True
+
+
+def withdraw(user: User, amount: int) -> bool:
+    if amount <= 0 or user.bank < amount:
+        return False
+    user.bank -= amount
+    user.balance += amount
+    return True
+
+
 async def top_balances(session: AsyncSession, limit: int = 10) -> list[User]:
     result = await session.execute(select(User).order_by(User.balance.desc()).limit(limit))
     return list(result.scalars())
+
+
+async def rank_of(session: AsyncSession, user: User) -> tuple[int, int]:
+    """Returns (rank, total_users), rank is 1-indexed by balance descending."""
+    total = (await session.execute(select(func.count()).select_from(User))).scalar_one()
+    higher = (
+        await session.execute(select(func.count()).select_from(User).where(User.balance > user.balance))
+    ).scalar_one()
+    return higher + 1, total

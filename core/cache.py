@@ -20,3 +20,10 @@ async def check_cooldown(key: str, seconds: int) -> int:
 
 async def clear_cooldown(key: str) -> None:
     await redis.delete(key)
+
+
+async def ping() -> bool:
+    try:
+        return bool(await redis.ping())
+    except Exception:
+        return False

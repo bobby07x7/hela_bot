@@ -1,7 +1,7 @@
 """
 Live-editable UI system.
 
-Every user-facing string has a `key` (e.g. "welcome", "error.permission_denied").
+Every user-facing string has a `key` (e.g. "welcome", "economy.balance").
 Defaults ship in /locales/<locale>.json. An owner can override any key at
 runtime with `/editui <key> <new text>`, which writes to the `ui_messages`
 table. `render()` always checks the DB override first, falling back to the
