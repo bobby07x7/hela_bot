@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hela Bot Dashboard</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="login-screen" class="screen">
+  <div class="login-box">
+    <h1>Hela Bot</h1>
+    <p class="subtitle">Dashboard</p>
+    <input id="login-password" type="password" placeholder="Dashboard password" autocomplete="current-password" />
+    <button id="login-btn">Log in</button>
+    <p id="login-error" class="error"></p>
+  </div>
+</div>
+
+<div id="app-screen" class="screen hidden">
+  <header>
+    <h1>Hela Bot</h1>
+    <div class="header-right">
+      <span id="maintenance-badge" class="badge hidden">Maintenance mode ON</span>
+      <button id="logout-btn" class="ghost">Log out</button>
+    </div>
+  </header>
+
+  <nav id="tabs">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="users">Users</button>
+    <button class="tab-btn" data-tab="groups">Groups</button>
+    <button class="tab-btn" data-tab="ui">UI Editor</button>
+    <button class="tab-btn" data-tab="broadcast">Broadcast</button>
+    <button class="tab-btn" data-tab="tickets">Tickets</button>
+    <button class="tab-btn" data-tab="market">Market</button>
+    <button class="tab-btn" data-tab="audit">Audit Log</button>
+  </nav>
+
+  <main>
+    <!-- Overview -->
+    <section id="tab-overview" class="tab-panel">
+      <div class="card-grid" id="stats-grid"></div>
+      <div class="card">
+        <h2>Maintenance mode</h2>
+        <p class="muted">While enabled, only the bot owner can use the bot.</p>
+        <label class="switch">
+          <input type="checkbox" id="maintenance-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Users -->
+    <section id="tab-users" class="tab-panel hidden">
+      <div class="toolbar">
+        <input id="user-search" placeholder="Search by username or first name..." />
+        <button id="user-search-btn">Search</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Telegram ID</th><th>Name</th><th>Balance</th><th>Level</th><th>Perm.</th><th>Premium</th><th>Banned</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- Groups -->
+    <section id="tab-groups" class="tab-panel hidden">
+      <table>
+        <thead><tr><th>Chat ID</th><th>Title</th><th>Force-join</th><th>Banned</th><th>Actions</th></tr></thead>
+        <tbody id="groups-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- UI Editor -->
+    <section id="tab-ui" class="tab-panel hidden">
+      <div class="toolbar">
+        <input id="ui-search" placeholder="Filter keys (e.g. economy, rpg, welcome)..." />
+      </div>
+      <div id="ui-list"></div>
+    </section>
+
+    <!-- Broadcast -->
+    <section id="tab-broadcast" class="tab-panel hidden">
+      <div class="card">
+        <h2>Send a broadcast</h2>
+        <p class="muted">Delivered to every known user and group within ~10 seconds by the bot process.</p>
+        <textarea id="broadcast-text" rows="4" placeholder="Message to send to everyone..."></textarea>
+        <button id="broadcast-btn">Queue broadcast</button>
+        <p id="broadcast-status" class="muted"></p>
+      </div>
+    </section>
+
+    <!-- Tickets -->
+    <section id="tab-tickets" class="tab-panel hidden">
+      <div id="tickets-list"></div>
+    </section>
+
+    <!-- Market -->
+    <section id="tab-market" class="tab-panel hidden">
+      <table>
+        <thead><tr><th>ID</th><th>Seller</th><th>Item</th><th>Qty</th><th>Price/ea</th></tr></thead>
+        <tbody id="market-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- Audit Log -->
+    <section id="tab-audit" class="tab-panel hidden">
+      <table>
+        <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+        <tbody id="audit-tbody"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
